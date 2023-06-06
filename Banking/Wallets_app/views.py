@@ -9,7 +9,7 @@ import random
 import string
 
 
-def generate_random_code():
+def generate_random_code() -> str:
     characters = string.ascii_letters + string.digits
     code = ''.join(random.choices(characters, k=8))
     return code
@@ -18,7 +18,7 @@ def generate_random_code():
 class Wallets_data(viewsets.ModelViewSet):
     queryset = Wallet.objects.all()
 
-    def retrieve(self, request, pk=None):
+    def retrieve(self, request, pk=None) -> Response:
         if pk is not None:
             user_wallet = Wallet.objects.filter(user=request.user.id, name=pk)
             serializer = self.get_serializer(user_wallet, many=True)
@@ -26,13 +26,13 @@ class Wallets_data(viewsets.ModelViewSet):
         else:
             return self.list(request)
 
-    def list(self, request):
+    def list(self, request) -> Response:
         user_id = request.user.id
         wallets = self.queryset.filter(user=user_id)
         serializer = self.get_serializer(wallets, many=True)
         return Response(serializer.data)
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs) -> Response:
         user_id = request.user.id
         user = User.objects.get(id=user_id)
         amount_wallets = Wallet.objects.filter(user=user_id).count()
@@ -62,10 +62,10 @@ class Wallets_data(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    def update(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs) -> Response:
         return Response({'error': "You can't change data!"})
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request, *args, **kwargs) -> Response:
         name_wallet = kwargs.get('pk', None)
         if name_wallet is not None:
             Wallet.objects.filter(user=request.user.id, name=name_wallet).delete()

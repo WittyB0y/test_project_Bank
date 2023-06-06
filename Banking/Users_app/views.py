@@ -17,7 +17,7 @@ class UserRegistrationView(generics.CreateAPIView):
 
 
 class UserLoginView(ObtainAuthToken):
-    def post(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs) -> Response:
         response = super().post(request, *args, **kwargs)
         token_key = response.data['token']
 
@@ -33,7 +33,7 @@ class LogoutView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def post(self, request) -> Response:
         token = Token.objects.get(user=request.user)
         token.delete()
         return Response({'detail': 'Successfully logged out.'})
