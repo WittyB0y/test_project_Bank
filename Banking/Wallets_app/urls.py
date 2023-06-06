@@ -1,11 +1,11 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import Wallets_data, detail_wallet
+from .views import Wallets_data
 
 router = routers.DefaultRouter()
-router.register(r'wallets', Wallets_data)
+router.register(r'wallets',Wallets_data)
+print(router)
 
 urlpatterns = [
-    path('wallet/<slug:slug>/', detail_wallet),
     path('', include(router.urls)),
 ]
