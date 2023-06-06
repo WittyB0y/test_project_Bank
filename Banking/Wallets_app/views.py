@@ -15,13 +15,16 @@ def generate_random_code():
     return code
 
 
-def detail_wallet(request, slug):
-    print(request, slug)
-    return Response({'error': '5 wallets are the max value'})
-
-
 class Wallets_data(viewsets.ModelViewSet):
     queryset = Wallet.objects.all()
+
+    def retrieve(self, request, pk=None):
+        if pk is not None:
+            user_wallet = Wallet.objects.filter(user=request.user.id, name=pk)
+            serializer = self.get_serializer(user_wallet, many=True)
+            return Response(serializer.data)
+        else:
+            return self.list(request)
 
     def list(self, request):
         user_id = request.user.id
@@ -61,3 +64,10 @@ class Wallets_data(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         return Response({'error': "You can't change data!"})
+
+    def destroy(self, request, *args, **kwargs):
+        name_wallet = kwargs.get('pk', None)
+        if name_wallet is not None:
+            Wallet.objects.filter(user=request.user.id, name=name_wallet).delete()
+            return Response({'Success': f'The wallet {name_wallet} has been removed'})
+        return Response({'error': 'No access'})
