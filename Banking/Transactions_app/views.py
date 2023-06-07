@@ -9,17 +9,27 @@ from Transactions_app.serializers import NewTransactionSerializer, GetAllTransac
 
 class NewTransaction(generics.ListCreateAPIView):
     serializer_class = NewTransactionSerializer
+    serializer_classes = {
+        "POST": NewTransactionSerializer,
+        "GET": GetAllTransactionSerializer,
+    }
     queryset = Transaction.objects.all()
 
     def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return NewTransactionSerializer
-        elif self.request.method == 'GET':
-            return GetAllTransactionSerializer
+        return self.serializer_classes.get(self.request.method) or self.serializer_class
+
+    def get_queryset(self, param='', request=None):
+        match param:
+            case 'GET':
+                return Transaction.objects.filter(
+                    Q(sender__user=request.user) | Q(receiver__user=request.user))
+            case 'POST':
+                return Wallet.objects.filter(user=request.user, name=request.data['receiver']).exists()
+            case _:
+                return super().get_queryset()
 
     def get(self, request, *args, **kwargs) -> Response:
-        all_user_transactions = Transaction.objects.filter(
-            Q(sender__user=request.user) | Q(receiver__user=request.user))
+        all_user_transactions = self.get_queryset(self.request.method, request)
         serializer = self.get_serializer(data=all_user_transactions, many=True)
         serializer.is_valid()
         return Response(serializer.data)
@@ -32,7 +42,7 @@ class NewTransaction(generics.ListCreateAPIView):
             sender_wallet = Wallet.objects.get(name=sender_name)
             receiver_wallet = Wallet.objects.get(name=receiver_name)
 
-            check_user_wallet = Wallet.objects.filter(user=request.user, name=request.data['receiver']).exists()
+            check_user_wallet = self.get_queryset(self.request.method, request)
             if check_user_wallet:
                 serializer = self.get_serializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
@@ -53,13 +63,19 @@ class DetailTransaction(generics.RetrieveAPIView):
     queryset = Transaction.objects.all()
 
     def get(self, request, id, *args, **kwargs) -> Response:
-        detail_transaction = Transaction.objects.filter(id=id).filter(
-            Q(sender__user=request.user) | Q(receiver__user=request.user))
-        print(detail_transaction)
+        detail_transaction = self.get_queryset(self.request.method, request, id)
         if detail_transaction:
             serializer = self.get_serializer(detail_transaction, many=True)
             return Response(serializer.data)
         return Response({'error': 'no access'})
+
+    def get_queryset(self, param='', request=None, id=None):
+        match param:
+            case "GET":
+                return Transaction.objects.filter(id=id).filter(
+                    Q(sender__user=request.user) | Q(receiver__user=request.user))
+            case _:
+                return super().get_queryset()
 
 
 class TransactionsInWallet(generics.ListAPIView):
@@ -67,10 +83,17 @@ class TransactionsInWallet(generics.ListAPIView):
     queryset = Transaction.objects.all()
 
     def get(self, request, wallet, *args, **kwargs) -> Response:
-        detail_transaction = Transaction.objects.filter(
-            Q(sender__name=wallet) | Q(receiver__name=wallet)
-        )
+        detail_transaction = self.get_queryset(self.request.method, others=wallet)
         if detail_transaction:
             serializer = self.get_serializer(detail_transaction, many=True)
             return Response(serializer.data)
         return Response({'error': 'no access'})
+
+    def get_queryset(self, param='', request=None, others=None):
+        match param:
+            case 'GET':
+                return Transaction.objects.filter(
+                    Q(sender__name=others) | Q(receiver__name=others)
+                )
+            case _:
+                return super().get_queryset()
