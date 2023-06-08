@@ -40,3 +40,4 @@ class LogoutView(APIView):
             return Response({'detail': 'Successfully logged out.'})
         except Token.DoesNotExist:
             Response({'error': 'Invalid token'}, status=400)
+        return Response({'detail': 'Successfully logged out.'})
