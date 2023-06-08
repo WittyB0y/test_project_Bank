@@ -1,9 +1,9 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import Wallets_data
+from .views import WalletsData
 
 router = routers.DefaultRouter()
-router.register(r'wallets',Wallets_data)
+router.register(r'wallets', WalletsData)
 print(router)
 
 urlpatterns = [
