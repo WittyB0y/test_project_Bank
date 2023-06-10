@@ -23,38 +23,34 @@ class WalletsData(viewsets.ModelViewSet):
         'GET': AllUserWalletsSerializer,
     }
 
-    def get_queryset(self, param, data=None) -> Wallet:
-        match param:
+    def get_queryset(self) -> Wallet:
+        method = self.request.method
+        user = self.request.user.id
+        name_wallet = self.request.resolver_match.kwargs.get('pk')
+        match method:
             case 'POST':
-                return Wallet.objects.filter(user=data).count()
+                return Wallet.objects.filter(user=user)
             case 'GET':
-                return Wallet.objects.filter(user=data.get('user'), name=data.get('name'))
+                if not name_wallet:
+                    return Wallet.objects.filter(user=user)
+                return Wallet.objects.filter(user=user, name=name_wallet)
             case 'DELETE':
-                print(Wallet.objects.filter(user=data.get('user'), name=data.get('name')))
-                return Wallet.objects.filter(user=data.get('user'), name=data.get('name')).delete()
+                return Wallet.objects.filter(user=user, name=name_wallet)
             case _:
                 return super().get_queryset()
 
     def retrieve(self, request, pk=None):
         if pk is not None:
-            data = {'user': request.user.id, 'name': pk}
-            user_wallet = self.get_queryset(self.request.method, data)
-            serializer = self.get_serializer(user_wallet, many=True)
+            serializer = self.get_serializer(self.get_queryset(), many=True)
             return Response(serializer.data)
         else:
             return self.list(request)
-
-    def list(self, request) -> Response:
-        user_id = request.user.id
-        wallets = self.get_queryset('list').filter(user=user_id)
-        serializer = self.get_serializer(wallets, many=True)
-        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
             user_id = request.user.id
             user = User.objects.get(id=user_id)
-            amount_wallets = self.get_queryset(self.request.method, user_id)
+            amount_wallets = self.get_queryset().count()
             if amount_wallets <= 5:
                 wallet = Wallet(
                     name=generate_random_code(),
@@ -83,7 +79,6 @@ class WalletsData(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs) -> Response:
         name_wallet = kwargs.get('pk', None)
         if name_wallet is not None:
-            data = {'user': request.user.id, 'name': name_wallet}
-            self.get_queryset(request.method, data)
+            self.get_queryset().delete()
             return Response({'Success': f'The wallet {name_wallet} has been removed'})
         return Response({'error': 'No access'})
