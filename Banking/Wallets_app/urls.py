@@ -4,7 +4,6 @@ from .views import WalletsData
 
 router = routers.DefaultRouter()
 router.register(r'wallets', WalletsData)
-print(router)
 
 urlpatterns = [
     path('', include(router.urls)),
