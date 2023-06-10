@@ -28,12 +28,6 @@ class NewTransaction(generics.ListCreateAPIView):
             case _:
                 return super().get_queryset()
 
-    def get(self, request, *args, **kwargs) -> Response:
-        all_user_transactions = self.get_queryset(self.request.method, request)
-        serializer = self.get_serializer(data=all_user_transactions, many=True)
-        serializer.is_valid()
-        return Response(serializer.data)
-
     def create(self, request, *args, **kwargs) -> Response:
         sender_name = request.data.get('sender')
         receiver_name = request.data.get('receiver')

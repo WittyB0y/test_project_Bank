@@ -62,11 +62,11 @@ class WalletsData(viewsets.ModelViewSet):
                     wallet.balance = Decimal('3.00')
                 elif request.data['currency'] == 'RUB':
                     wallet.balance = Decimal('100.00')
-
+                wallet.currency = request.data['currency']
                 wallet.save()
                 serializer = UserWalletsSerializer(wallet)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response({'error': '5 wallets are the max value'})
+            return Response({'error': '5 wallets are the max value'}, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
             return Response({'error': 'User does not exist'})
 
