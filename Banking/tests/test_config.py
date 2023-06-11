@@ -5,8 +5,8 @@ import requests
 URL = 'http://127.0.0.1:8000/api/v1/'
 RANDINT = random.randint(1000, 999999999999)
 USER = f'TEST_USER_{RANDINT}'
-PASSWORD = ')(+_938434#$'
-EMAIL = 'test@test.com'
+PASSWORD = f')(+_9{RANDINT}38434#$'
+EMAIL = f'{RANDINT}test@test.com'
 currencies = ['RUB', "USD", "EUR"]
 types = ['Visa', 'Mastercard']
 endpoints = ['logout/']

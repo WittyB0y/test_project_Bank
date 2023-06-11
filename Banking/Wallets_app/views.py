@@ -19,32 +19,26 @@ class WalletsData(viewsets.ModelViewSet):
     queryset = Wallet.objects.all()
     http_method_names = ['get', 'post', 'delete']
     serializer_classes = {
-        'POST': UserWalletsSerializer,
-        'GET': AllUserWalletsSerializer,
+        'create': UserWalletsSerializer,
+        'list': AllUserWalletsSerializer,
+        'retrieve': AllUserWalletsSerializer,
     }
+    lookup_field = 'name'
 
     def get_queryset(self) -> Wallet:
-        method = self.request.method
         user = self.request.user.id
-        name_wallet = self.request.resolver_match.kwargs.get('pk')
-        match method:
-            case 'POST':
+        name_wallet = self.kwargs.get(self.lookup_field)
+        match self.action:
+            case 'list':
                 return Wallet.objects.filter(user=user)
-            case 'GET':
-                if not name_wallet:
-                    return Wallet.objects.filter(user=user)
-                return Wallet.objects.filter(user=user, name=name_wallet)
-            case 'DELETE':
-                return Wallet.objects.filter(user=user, name=name_wallet)
+            case 'retrieve':
+                return Wallet.objects.filter(**{self.lookup_field: name_wallet})
+            case 'create':
+                return Wallet.objects.filter(user=user)
+            case 'destroy':
+                return Wallet.objects.filter(user=user, **{self.lookup_field: name_wallet})
             case _:
                 return super().get_queryset()
-
-    def retrieve(self, request, pk=None):
-        if pk is not None:
-            serializer = self.get_serializer(self.get_queryset(), many=True)
-            return Response(serializer.data)
-        else:
-            return self.list(request)
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
@@ -71,13 +65,13 @@ class WalletsData(viewsets.ModelViewSet):
             return Response({'error': 'User does not exist'})
 
     def get_serializer_class(self) -> serializer_classes:
-        return self.serializer_classes.get(self.request.method) or super().get_serializer_class()
+        return self.serializer_classes.get(self.action) or super().get_serializer_class()
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
     def destroy(self, request, *args, **kwargs) -> Response:
-        name_wallet = kwargs.get('pk', None)
+        name_wallet = kwargs.get('name', None)
         if name_wallet is not None:
             self.get_queryset().delete()
             return Response({'Success': f'The wallet {name_wallet} has been removed'})
