@@ -1,4 +1,5 @@
-from .test_config import *
+from .conftest import USER, PASSWORD, EMAIL, URL, endpoints
+import requests
 
 
 def test_user_sign_up():
@@ -26,7 +27,6 @@ def test_sign_in():
 
 def test_log_out(sign_in):
     """use fixture to get authToken, and then logout"""
-    token = sign_in
     data = {'Authorization': f'Token {sign_in}'}
     response = requests.post(url=f'{URL}logout/', headers=data)
     assert response.status_code == 200, f'Received status code is not equal to 200!!!,\nbut gotten {response.status_code}'
