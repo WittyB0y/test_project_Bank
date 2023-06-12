@@ -1,3 +1,5 @@
+import pytest
+
 from .conftest import USER, PASSWORD, EMAIL, URL, endpoints
 import requests
 
@@ -33,9 +35,8 @@ def test_log_out(sign_in):
     assert response.json().get('detail') == "Successfully logged out.", 'The response was unexcepted!!!'
 
 
-def test_unauthorized_access_to_protected_endpoints():
-    """Test unauthorized access to protected endpoints"""
-
-    for endpoint in endpoints:
-        response = requests.post(url=f'{URL}{endpoint}')
-        assert response.status_code == 401, f'Received status code is not equal to 401!!!,\nbut gotten {response.status_code}'
+@pytest.mark.parametrize("url, result", [(f'{URL}{elem}', 401) for elem in endpoints])
+def test_for_unauthorized_access_to_protected_endpoints(url, result):
+    """test for unauth access to endpoints"""
+    from .conftest import requester_code
+    assert requester_code(url) == result, f'Received status code is not equal to 401!!!'

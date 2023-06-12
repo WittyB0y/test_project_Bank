@@ -9,11 +9,16 @@ PASSWORD = f')(+_9{RANDINT}38434#$'
 EMAIL = f'{RANDINT}test@test.com'
 currencies = ['RUB', "USD", "EUR"]
 types = ['Visa', 'Mastercard']
-endpoints = ['logout/']
+endpoints = [
+    'logout/',
+    'wallets/transactions/',
+    'wallets/',
+]
 
 
 @pytest.fixture
 def sign_in():
+    """login and return AuthToken"""
     data = {
         'username': USER,
         'password': PASSWORD,
@@ -24,6 +29,7 @@ def sign_in():
 
 @pytest.fixture
 def sign_up_pre_sign_in():
+    """creation user, data necessary for registration is random"""
     data = {
         'username': USER,
         'password': PASSWORD,
@@ -35,6 +41,7 @@ def sign_up_pre_sign_in():
 
 @pytest.fixture
 def create_wallet():
+    """creation user, getting AuthToken and creation a wallet"""
     data_wallets = {}
     token = sign_up_pre_sign_in.__wrapped__().__wrapped__()
     header = {'Authorization': f'Token {token}'}
@@ -90,7 +97,7 @@ def sign_up_pre_sign_in_for_creation_max_wallets():
 @pytest.fixture
 def sign_up_pre_sign_in_for_delete_wallets():
     wallet = create_wallet.__wrapped__()
-    header ={'Authorization': f'Token {wallet["token"]}'}
+    header = {'Authorization': f'Token {wallet["token"]}'}
     wallet = wallet[1]
 
     return header, wallet
@@ -106,3 +113,8 @@ def create_wallets_for_transaction():
         "receiver": data_wallet[2],
     }
     return data_wallet, header, data
+
+
+def requester_code(url):
+    response = requests.post(url=url)
+    return response.status_code

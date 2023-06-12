@@ -1,5 +1,6 @@
 from django.db.models import Q
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from Wallets_app.models import Wallet
@@ -14,6 +15,7 @@ class NewTransaction(generics.ListCreateAPIView):
         "GET": GetAllTransactionSerializer,
     }
     queryset = Transaction.objects.all()
+    permission_classes = (IsAuthenticated, )
 
     def get_serializer_class(self):
         return self.serializer_classes.get(self.request.method) or self.serializer_class
@@ -55,6 +57,7 @@ class NewTransaction(generics.ListCreateAPIView):
 class DetailTransaction(generics.RetrieveAPIView):
     serializer_class = GetAllTransactionSerializer
     queryset = Transaction.objects.all()
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, id, *args, **kwargs) -> Response:
         detail_transaction = self.get_queryset(self.request.method, request, id)
@@ -75,6 +78,7 @@ class DetailTransaction(generics.RetrieveAPIView):
 class TransactionsInWallet(generics.ListAPIView):
     serializer_class = GetAllTransactionSerializer
     queryset = Transaction.objects.all()
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, wallet, *args, **kwargs) -> Response:
         detail_transaction = self.get_queryset(self.request.method, others=wallet)

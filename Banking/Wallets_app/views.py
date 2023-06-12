@@ -1,6 +1,7 @@
 from decimal import Decimal
 from django.contrib.auth.models import User
 from rest_framework import viewsets, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Wallet
@@ -24,6 +25,7 @@ class WalletsData(viewsets.ModelViewSet):
         'retrieve': AllUserWalletsSerializer,
     }
     lookup_field = 'name'
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self) -> Wallet:
         user = self.request.user.id
